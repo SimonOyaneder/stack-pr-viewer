@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": ["main/**/*.ts"],
+  "exclude": ["node_modules", "renderer", "dist", "app"]
+}

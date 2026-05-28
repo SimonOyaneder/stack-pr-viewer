@@ -1,0 +1,28 @@
+appId: io.github.simonoyaneder.stack-pr
+productName: Stack PR
+copyright: Copyright © 2026 Simón Oyaneder
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app
+publish: null
+mac:
+  category: public.app-category.developer-tools
+  identity: null
+  target:
+    - target: zip
+      arch:
+        - arm64
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+linux:
+  target:
+    - AppImage
+  category: Development
