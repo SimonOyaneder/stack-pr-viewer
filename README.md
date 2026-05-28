@@ -6,6 +6,28 @@ Visualize your GitHub Pull Requests as an interactive dependency tree, **as a na
 
 No webserver, no database, no OAuth App. You paste a GitHub **Personal Access Token (PAT)** and the app fetches your authored PRs and renders them as a forest of stacks.
 
+## Build
+
+```bash
+npm install
+npm run build:mac    # macOS   — nextron build --mac + scripts/make-dmg.sh arm64
+npm run build:win    # Windows — NSIS installer (.exe)
+npm run build:linux  # Linux   — AppImage
+npm run build        # current platform, default target
+```
+
+All artifacts are written to `dist/`. After `npm run build:mac` you'll find:
+
+| File | What it is |
+| --- | --- |
+| `dist/Stack PR-<version>-arm64.dmg` | **Installer** — open it and drag the app to Applications |
+| `dist/mac-arm64/Stack PR.app` | The app bundle itself (double-click to run directly) |
+| `dist/Stack PR-<version>-arm64-mac.zip` | Zipped app bundle |
+
+`<version>` comes from `package.json` (currently `0.0.0`). On Windows the NSIS installer (`.exe`) lands in `dist/`; on Linux, the `AppImage`. Packaging details (icons, signing, targets) live in `electron-builder.yml`. To regenerate icons: `npm run icons`.
+
+> The macOS build is **unsigned** (`identity: null`). On first open, right-click the app → **Open** to get past Gatekeeper.
+
 ## Development environment
 
 ```bash
@@ -33,16 +55,6 @@ npm run typecheck    # tsc --noEmit on both main and renderer
 ```
 
 No test framework is configured.
-
-## Building on macOS
-
-```bash
-npm run build:mac    # nextron build --mac + scripts/make-dmg.sh arm64 → .dmg (arm64)
-```
-
-The artifact lands in `dist/`. Packaging details (icons, signing, targets) live in `electron-builder.yml`. To regenerate icons: `npm run icons`.
-
-Other targets: `npm run build` (current platform), `npm run build:win` (NSIS), `npm run build:linux` (AppImage).
 
 ## Stack
 
