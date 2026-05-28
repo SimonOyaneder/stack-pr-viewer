@@ -1,4 +1,4 @@
-# Stack PR
+# Stack PR Viewer
 
 Visualize your GitHub Pull Requests as an interactive dependency tree, **as a native desktop app**. When a PR is based on another's branch (stacked PRs), they're linked into trees so you can see at a glance how your in-flight work branches out.
 
