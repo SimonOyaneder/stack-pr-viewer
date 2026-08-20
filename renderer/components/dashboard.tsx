@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   LogOut,
   LocateFixed,
+  GitPullRequestDraft,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Skeleton } from "./ui/skeleton"
@@ -53,6 +54,8 @@ type StatFilter =
   | "stacked"
   | "solo"
   | "open"
+  | "draft"
+  | "ready"
   | "approved"
   | "pending"
   | "needs_changes"
@@ -158,6 +161,10 @@ export function Dashboard({ user, onSignedOut }: DashboardProps) {
 
     if (statFilter === "open") {
       result = result.filter((p) => p.state === "open" || p.state === "draft")
+    } else if (statFilter === "draft") {
+      result = result.filter((p) => p.isDraft || p.state === "draft")
+    } else if (statFilter === "ready") {
+      result = result.filter((p) => p.state === "open" && !p.isDraft)
     } else if (statFilter === "approved") {
       result = result.filter((p) => getReviewStatus(p) === "approved")
     } else if (statFilter === "pending") {
@@ -197,11 +204,15 @@ export function Dashboard({ user, onSignedOut }: DashboardProps) {
     const stacked = groups.filter((g) => g.prIds.length > 1)
     const stackedPRs = stacked.reduce((sum, g) => sum + g.prIds.length, 0)
     let open = 0
+    let draft = 0
+    let ready = 0
     let approved = 0
     let pending = 0
     let needsChanges = 0
     for (const pr of prs) {
       if (pr.state === "open" || pr.state === "draft") open++
+      if (pr.isDraft || pr.state === "draft") draft++
+      else if (pr.state === "open") ready++
       const review = getReviewStatus(pr)
       if (review === "approved") approved++
       else if (review === "pending") pending++
@@ -213,6 +224,8 @@ export function Dashboard({ user, onSignedOut }: DashboardProps) {
       stackedPRs,
       solo: prs.length - stackedPRs,
       open,
+      draft,
+      ready,
       approved,
       pending,
       needsChanges,
@@ -248,6 +261,8 @@ export function Dashboard({ user, onSignedOut }: DashboardProps) {
         <div className="flex items-center gap-1.5">
           <HeaderStats
             total={stats.open}
+            draft={stats.draft}
+            ready={stats.ready}
             approved={stats.approved}
             pending={stats.pending}
             needsChanges={stats.needsChanges}
@@ -368,6 +383,29 @@ export function Dashboard({ user, onSignedOut }: DashboardProps) {
                 active={statFilter === "open"}
                 onClick={() => toggleStatFilter("open")}
               />
+            </div>
+            <div className="mt-3">
+              <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                By state
+              </h3>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <StatCard
+                  label="Draft"
+                  value={stats.draft}
+                  accent="text-zinc-600 dark:text-zinc-300"
+                  dotClass="bg-zinc-400"
+                  active={statFilter === "draft"}
+                  onClick={() => toggleStatFilter("draft")}
+                />
+                <StatCard
+                  label="Ready"
+                  value={stats.ready}
+                  accent="text-sky-600 dark:text-sky-400"
+                  dotClass="bg-sky-500"
+                  active={statFilter === "ready"}
+                  onClick={() => toggleStatFilter("ready")}
+                />
+              </div>
             </div>
             <div className="mt-3">
               <h3 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
@@ -528,6 +566,8 @@ function StatCard({
 
 function HeaderStats({
   total,
+  draft,
+  ready,
   approved,
   pending,
   needsChanges,
@@ -536,6 +576,8 @@ function HeaderStats({
   onClear,
 }: {
   total: number
+  draft: number
+  ready: number
   approved: number
   pending: number
   needsChanges: number
@@ -557,6 +599,23 @@ function HeaderStats({
         <span className="font-semibold tabular-nums">{total}</span>
         <span className="text-muted-foreground">open</span>
       </button>
+      <HeaderStatPill
+        value={draft}
+        icon={<GitPullRequestDraft className="h-3 w-3" />}
+        accent="text-zinc-600 dark:text-zinc-300"
+        label="Draft"
+        active={activeFilter === "draft"}
+        onClick={() => onToggle("draft")}
+      />
+      <HeaderStatPill
+        value={ready}
+        icon={<GitPullRequest className="h-3 w-3" />}
+        accent="text-sky-700 dark:text-sky-400"
+        label="Ready for review"
+        active={activeFilter === "ready"}
+        onClick={() => onToggle("ready")}
+      />
+      <div className="h-5 w-px bg-border mx-1" />
       <HeaderStatPill
         value={approved}
         dotClass="bg-emerald-500"
@@ -589,13 +648,15 @@ function HeaderStats({
 function HeaderStatPill({
   value,
   dotClass,
+  icon,
   accent,
   label,
   active,
   onClick,
 }: {
   value: number
-  dotClass: string
+  dotClass?: string
+  icon?: React.ReactNode
   accent: string
   label: string
   active?: boolean
@@ -613,7 +674,11 @@ function HeaderStatPill({
       )}
       title={`Filter: ${label} (${value})`}
     >
-      <span className={cn("inline-block h-1.5 w-1.5 rounded-full", dotClass)} />
+      {icon ? (
+        <span className={cn("flex items-center", accent)}>{icon}</span>
+      ) : (
+        <span className={cn("inline-block h-1.5 w-1.5 rounded-full", dotClass)} />
+      )}
       <span className={cn("font-semibold tabular-nums", accent)}>{value}</span>
     </button>
   )
